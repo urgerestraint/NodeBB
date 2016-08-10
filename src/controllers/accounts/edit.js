@@ -27,18 +27,35 @@ editController.get = function(req, res, callback) {
 		userData.allowProfileImageUploads = parseInt(meta.config.allowProfileImageUploads) === 1;
 		userData.allowAccountDelete = parseInt(meta.config.allowAccountDelete, 10) === 1;
 
-		userData.groups = userData.groups.filter(function(group) {
+		userData.titles = userData.groups.filter(function(group) {
 			return group && group.userTitleEnabled && !groups.isPrivilegeGroup(group.name) && group.name !== 'registered-users';
 		});
-		userData.groups.forEach(function(group) {
-			group.selected = group.name === userData.groupTitle;
+		userData.titles = userData.titles.map(function(group) {
+			return {
+				id: 'group:' + group.name,
+				selected: 'group:' + group.name === userData.groupTitle,
+				meta: {
+					label: group.userTitle,
+					bgColor: group.labelColor,
+					icon: group.icon,
+					textColor: '#fff'	// Currently hard-coded
+				}
+			};
 		});
+		delete userData.groups;
 
 		userData.title = '[[pages:account/edit, ' + userData.username + ']]';
 		userData.breadcrumbs = helpers.buildBreadcrumbs([{text: userData.username, url: '/user/' + userData.userslug}, {text: '[[user:edit]]'}]);
 		userData.editButtons = [];
 
-		plugins.fireHook('filter:user.account.edit', userData, function(err, userData) {
+		async.waterfall([
+			async.apply(plugins.fireHook, 'filter:user.titles.list', { uid: req.uid, titles: userData.titles }),
+			function(data, next) {
+				userData.titles = data.titles;
+				setImmediate(next);
+			},
+			async.apply(plugins.fireHook, 'filter:user.account.edit', userData)
+		], function(err, userData) {
 			if (err) {
 				return callback(err);
 			}
