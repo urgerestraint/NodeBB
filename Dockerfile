@@ -1,15 +1,15 @@
-# The base image is the latest 4.x node (LTS) on jessie (debian)
-# -onbuild will install the node dependencies found in the project package.json
-# and copy its content in /usr/src/app, its WORKDIR
 FROM node:6-onbuild
 
 ENV NODE_ENV=production \
     daemon=false \
-    silent=false
+    silent=false \
+    database=mongo \
+    url=$NODEBB_URL \
+    secret=$NODEBB_SECRET \
+    mongo__host=$NODEBB_DATABASE_MONGO_HOST \
+    mongo__port=$NODEBB_DATABASE_MONGO_PORT \
+    mongo__database=$NODEBB_DATABASE_MONGO_DB
 
-# nodebb setup will ask you for connection information to a redis (default), mongodb then run the forum
-# nodebb upgrade is not included and might be desired
 CMD node app --setup && npm start
 
-# the default port for NodeBB is exposed outside the container
 EXPOSE 4567
