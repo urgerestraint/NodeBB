@@ -3,16 +3,10 @@ FROM node:6-onbuild
 ENV NODE_ENV=production \
     daemon=false \
     silent=false \
-    isCluster=true \
-    database=mongo \
-    setup=$NODEBB_SETUP \
-    url=$NODEBB_URL \
-    secret=$NODEBB_SECRET \
-    mongo__host=$NODEBB_DATABASE_MONGO_HOST \
-    mongo__port=$NODEBB_DATABASE_MONGO_PORT \
-    mongo__database=$NODEBB_DATABASE_MONGO_DB \
-    setup={"admin:username":"$NODEBB_ADMIN_USER","admin:password":"$NODEBB_ADMIN_PASS","admin:password:confirm":"$NODEBB_ADMIN_PASS","admin:email":"$NODEBB_ADMIN_EMAIL"}
+    isCluster=true
 
-CMD node app --setup && npm start
+CMD echo "{\"url\":\"$NODEBB_URL\",\"secret\":\"$NODEBB_SECRET\",\"database\":\"mongo\",\"port\":4567,\"mongo\":{\"host\":\"$DB_PORT_27017_TCP_ADDR\",\"port\":\"$DB_PORT_27017_TCP_PORT\",\"database\":\"$DB_ENV_DOCKERCLOUD_STACK_NAME\"}}" > config.json &&
+    node app --setup && \
+    npm start
 
 EXPOSE 4567
