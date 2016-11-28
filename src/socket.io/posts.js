@@ -139,6 +139,9 @@ SocketPosts.getReplies = function (socket, pid, callback) {
 		},
 		function (results, next) {
 			postPrivileges = results.privileges;
+			results.posts = results.posts.filter(function (postData, index) {
+				return postData && postPrivileges[index].read;
+			});
 			topics.addPostData(results.posts, socket.uid, next);
 		},
 		function (postData, next) {
